@@ -42,6 +42,7 @@ Static images
   * ``encodedpath`` - an alternative way to provide a path using Google's polyline encoding. Only used if ``path`` is not provided.
 
      * more details: https://developers.google.com/maps/documentation/utilities/polylinealgorithm
+  * ``encodingprecision`` - used with ``encodedpath`` to specify the precision when decoding
   * ``latlng`` - indicates the ``path`` coordinates are in ``lat,lng`` order rather than the usual ``lng,lat``. possible values: ``true`` or ``1``
   * ``fill`` - color to use as the fill (e.g. ``red``, ``rgba(255,255,255,0.5)``, ``#0000ff``)
   * ``stroke`` - color of the path stroke
