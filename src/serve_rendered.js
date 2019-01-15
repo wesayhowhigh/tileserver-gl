@@ -515,7 +515,7 @@ module.exports = function(options, repo, params, id, publicUrl, dataResolver) {
     });
 
     if(path.length==0){
-      path = utils.decodePolyline(query.encodedpath);
+      path = utils.decodePolyline(query.encodedpath, query.encodingprecision);
     }
 
     return path;
