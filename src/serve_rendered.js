@@ -5,7 +5,8 @@ var advancedPool = require('advanced-pool'),
     path = require('path'),
     url = require('url'),
     util = require('util'),
-    zlib = require('zlib');
+    zlib = require('zlib'),
+    bodyParser = require('body-parser');
 
 // sharp has to be required before node-canvas
 // see https://github.com/lovell/sharp/issues/371
@@ -99,6 +100,7 @@ function createEmptyResponse(format, color, callback) {
 
 module.exports = function(options, repo, params, id, publicUrl, dataResolver) {
   var app = express().disable('x-powered-by');
+  app.use(bodyParser.json());
 
   var maxScaleFactor = Math.min(Math.floor(options.maxScaleFactor || 3), 9);
   var scalePattern = '';
@@ -714,9 +716,8 @@ module.exports = function(options, repo, params, id, publicUrl, dataResolver) {
           pitch = 0;
 
       console.log('static post attempt. Request Body:', req.body);
-      var body = JSON.parse(req.body);
-      console.log('static post attempt. Request Body PARSED:', body);
-      var path = extractPathFromPostBody(body.route);
+
+      var path = extractPathFromPostBody(req.body.route);
       var overlay = renderOverlay(z, x, y, bearing, pitch, w, h, scale,
                                   path, req.query);
       return respondImage(z, x, y, bearing, pitch, w, h, scale, format,
