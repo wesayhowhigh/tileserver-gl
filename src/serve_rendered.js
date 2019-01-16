@@ -521,6 +521,12 @@ module.exports = function(options, repo, params, id, publicUrl, dataResolver) {
     return path;
   };
 
+  var extractPathFromPostBody = function(routePath) {
+    console.log('extractPathFromPostBody:', routePath);
+
+    return utils.decodePolyline(routePath, query.encodingprecision);
+  };
+
   var renderOverlay = function(z, x, y, bearing, pitch, w, h, scale,
                                path, query) {
     if (!path || path.length < 2) {
@@ -677,11 +683,52 @@ module.exports = function(options, repo, params, id, publicUrl, dataResolver) {
                           res, next, overlay);
     };
 
+    var serveBoundsForPostRequest = function(req, res, next) {
+      var raw = req.params.raw;
+      var bbox = [+req.params.minx, +req.params.miny,
+                  +req.params.maxx, +req.params.maxy];
+      var center = [(bbox[0] + bbox[2]) / 2, (bbox[1] + bbox[3]) / 2];
+
+      var transformer = raw ?
+        mercator.inverse.bind(mercator) : dataProjWGStoInternalWGS;
+
+      if (transformer) {
+        var minCorner = transformer(bbox.slice(0, 2));
+        var maxCorner = transformer(bbox.slice(2));
+        bbox[0] = minCorner[0];
+        bbox[1] = minCorner[1];
+        bbox[2] = maxCorner[0];
+        bbox[3] = maxCorner[1];
+        center = transformer(center);
+      }
+
+      var w = req.params.width | 0,
+          h = req.params.height | 0,
+          scale = getScale(req.params.scale),
+          format = req.params.format;
+
+      var z = calcZForBBox(bbox, w, h, req.query),
+          x = center[0],
+          y = center[1],
+          bearing = 0,
+          pitch = 0;
+
+      console.log('static post attempt. Request Body:', req.body);
+      var body = JSON.parse(req.body);
+      console.log('static post attempt. Request Body PARSED:', body);
+      var path = extractPathFromPostBody(body.route);
+      var overlay = renderOverlay(z, x, y, bearing, pitch, w, h, scale,
+                                  path, req.query);
+      return respondImage(z, x, y, bearing, pitch, w, h, scale, format,
+                          res, next, overlay);
+    };
+
     var boundsPattern =
         util.format(':minx(%s),:miny(%s),:maxx(%s),:maxy(%s)',
                     FLOAT_PATTERN, FLOAT_PATTERN, FLOAT_PATTERN, FLOAT_PATTERN);
 
     app.get(util.format(staticPattern, boundsPattern), serveBounds);
+    app.post(util.format(staticPattern, boundsPattern), serveBoundsForPostRequest);
 
     app.get('/' + id + '/static/', function(req, res, next) {
       for (var key in req.query) {
