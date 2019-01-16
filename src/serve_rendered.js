@@ -523,7 +523,7 @@ module.exports = function(options, repo, params, id, publicUrl, dataResolver) {
     return path;
   };
 
-  var extractPathFromPostBody = function(routePath) {
+  var extractPathFromPostBody = function(routePath, query) {
     console.log('extractPathFromPostBody:', routePath);
 
     return utils.decodePolyline(routePath, query.encodingprecision);
@@ -715,9 +715,10 @@ module.exports = function(options, repo, params, id, publicUrl, dataResolver) {
           bearing = 0,
           pitch = 0;
 
-      console.log('static post attempt. Request Body:', req.body);
+      // console.log('static post attempt. Request:', req);
+      // console.log('static post attempt. Request Body:', req.body);
 
-      var path = extractPathFromPostBody(req.body.route);
+      var path = extractPathFromPostBody(req.body.route, req.query);
       var overlay = renderOverlay(z, x, y, bearing, pitch, w, h, scale,
                                   path, req.query);
       return respondImage(z, x, y, bearing, pitch, w, h, scale, format,
