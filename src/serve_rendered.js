@@ -714,7 +714,9 @@ module.exports = function(options, repo, params, id, publicUrl, dataResolver) {
           pitch = 0;
 
       console.log('static post attempt. Request Body:', req.body);
-      var path = extractPathFromPostBody(req.body.route);
+      var body = JSON.parse(req.body);
+      console.log('static post attempt. Request Body PARSED:', body);
+      var path = extractPathFromPostBody(body.route);
       var overlay = renderOverlay(z, x, y, bearing, pitch, w, h, scale,
                                   path, req.query);
       return respondImage(z, x, y, bearing, pitch, w, h, scale, format,
